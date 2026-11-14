@@ -31,6 +31,14 @@ iframe{width:100%;aspect-ratio:16/10;border:0;border-radius:12px;background:#eee
 .primary{background:var(--c1);color:#fff;font-weight:bold}
 .ghost{background:#eee}
 .fb{background:#f6f6ff;border-radius:12px;padding:8px 12px;margin:6px 0}
+#modal{z-index:20}
+#welcome{position:fixed;inset:0;background:#fcf3dd;display:none;align-items:center;justify-content:center;z-index:30;padding:16px;overflow:auto}
+#wcard{background:#fffdf8;border:4px solid #231f48;border-radius:32px;box-shadow:0 8px 0 #231f48;padding:24px;max-width:560px;width:100%;text-align:center;color:#231f48}
+#wcard label{display:block;text-align:left;font-weight:bold;margin:10px 0 4px}
+#wcard select{width:100%;border:3px solid #231f48;background:#fcf3dd;border-radius:18px;padding:12px;font-size:1.1rem}
+#wmsg{min-height:1.6em;margin:10px 0;font-weight:bold;color:#c0392b}
+#go{background:#f7c948;border:3px solid #231f48;box-shadow:0 5px 0 #231f48;font-weight:bold;font-size:1.2rem;padding:12px 30px;border-radius:18px}
+#meTag{font-weight:bold}
 #msg{margin:8px 0;font-weight:bold}
 </style>
 </head>
@@ -38,7 +46,8 @@ iframe{width:100%;aspect-ratio:16/10;border:0;border-radius:12px;background:#eee
 <header>
   <h1 id="title"></h1>
   <div id="bar">
-    <select id="who"></select>
+    <span id="meTag"></span>
+    <button id="change" class="ghost"></button>
     <button id="lang" class="ghost">EN / ID</button>
   </div>
 </header>
@@ -47,13 +56,27 @@ iframe{width:100%;aspect-ratio:16/10;border:0;border-radius:12px;background:#eee
   <div id="grid"></div>
 </main>
 <div id="modal"><div id="box"></div></div>
+<div id="welcome">
+  <div id="wcard">
+    <button id="lang2" class="ghost" style="float:right">EN / ID</button>
+    <div style="font-size:4rem;clear:both">👋</div>
+    <h1 id="wTitle" style="font-size:2rem;margin:8px 0 20px"></h1>
+    <label id="lblCls"></label>
+    <select id="cls"></select>
+    <label id="lblName"></label>
+    <select id="who"></select>
+    <div id="wmsg"></div>
+    <button id="go"></button>
+  </div>
+</div>
 
 <script>
 const CONFIG = {
   SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbwWTizKdlUln341WXAAw1V0etfz5-UcOAOc3BZyO78mhvh8EsPxCA6SVeIISSF-Px7z/exec', // URL Web App dari Apps Script
   MAX_PER_STUDENT: 3,   // tiap anak memberi feedback ke maksimal ... poster
   MAX_COMPLIMENTS: 2,   // maksimal bintang-hal-bagus yang dipilih
-  ALLOW_NOTE: false     // true = anak boleh menulis kalimat sendiri
+  ALLOW_NOTE: false,    // true = anak boleh menulis kalimat sendiri
+  SHOW_CANVA_LINK: false // true = tampilkan tautan "Buka di Canva" di bawah poster
 };
 const C = {
   c1: {en: 'I love the colors!', id: 'Aku suka warna posternya!'},
@@ -69,10 +92,10 @@ const W = {
   w4: {en: 'Maybe add more information.', id: 'Mungkin bisa ditambah informasi.'}
 };
 const T = {
-  en: {title: 'Gallery Walk', pick: 'Who are you?', hint: 'Pick your name, then tap a poster. Give ⭐ stars, choose two things you like and one wish.', stars: 'How many stars?', like: 'Two stars: what I like', wish: 'A wish: what could be better', note: 'My own words (optional)', send: 'Send feedback', close: 'Close', open: 'Open in Canva', mine: 'My poster – feedback I got', none: 'No feedback yet.', sent: 'Thank you! Feedback sent. ✅', given: 'You already gave feedback ✅', limit: 'You have reached the limit of posters. Great job!', need: 'Please give stars and choose at least one thing.', err: 'Could not send. Try again.', cnt: 'feedback', soon: 'Poster is not ready yet.', load: 'Loading…'},
-  id: {title: 'Gallery Walk', pick: 'Kamu siapa?', hint: 'Pilih namamu, lalu klik poster. Beri ⭐ bintang, pilih dua hal yang kamu suka dan satu harapan.', stars: 'Berapa bintang?', like: 'Dua bintang: yang aku suka', wish: 'Satu harapan: supaya lebih baik', note: 'Kalimatku sendiri (boleh dikosongkan)', send: 'Kirim feedback', close: 'Tutup', open: 'Buka di Canva', mine: 'Posterku – feedback yang masuk', none: 'Belum ada feedback.', sent: 'Terima kasih! Feedback terkirim. ✅', given: 'Kamu sudah memberi feedback ✅', limit: 'Kamu sudah mencapai batas jumlah poster. Hebat!', need: 'Beri bintang dan pilih minimal satu hal ya.', err: 'Gagal mengirim. Coba lagi.', cnt: 'feedback', soon: 'Poster belum siap.', load: 'Memuat…'}
+  en: {title: 'Gallery Walk', hello: 'Hello! What is your name?', lblClass: 'Class', lblName: 'Name', go: 'Let’s go!', change: 'Change name', needName: 'Please choose your class and name.', choose: 'Choose', pickClass: 'Your class?', pick: 'Who are you?', hint: 'Tap a friend’s poster. Give ⭐ stars, choose two things you like and one wish.', stars: 'How many stars?', like: 'Two stars: what I like', wish: 'A wish: what could be better', note: 'My own words (optional)', send: 'Send feedback', close: 'Close', open: 'Open in Canva', mine: 'My poster – feedback I got', none: 'No feedback yet.', sent: 'Thank you! Feedback sent. ✅', given: 'You already gave feedback ✅', limit: 'You have reached the limit of posters. Great job!', need: 'Please give stars and choose at least one thing.', err: 'Could not send. Try again.', cnt: 'feedback', soon: 'Poster is not ready yet.', load: 'Loading…'},
+  id: {title: 'Gallery Walk', hello: 'Halo! Siapa namamu?', lblClass: 'Kelas', lblName: 'Nama', go: 'Ayo mulai!', change: 'Ganti nama', needName: 'Pilih kelas dan namamu dulu ya.', choose: 'Pilih', pickClass: 'Kelasmu apa?', pick: 'Kamu siapa?', hint: 'Klik poster temanmu. Beri ⭐ bintang, pilih dua hal yang kamu suka dan satu harapan.', stars: 'Berapa bintang?', like: 'Dua bintang: yang aku suka', wish: 'Satu harapan: supaya lebih baik', note: 'Kalimatku sendiri (boleh dikosongkan)', send: 'Kirim feedback', close: 'Tutup', open: 'Buka di Canva', mine: 'Posterku – feedback yang masuk', none: 'Belum ada feedback.', sent: 'Terima kasih! Feedback terkirim. ✅', given: 'Kamu sudah memberi feedback ✅', limit: 'Kamu sudah mencapai batas jumlah poster. Hebat!', need: 'Beri bintang dan pilih minimal satu hal ya.', err: 'Gagal mengirim. Coba lagi.', cnt: 'feedback', soon: 'Poster belum siap.', load: 'Memuat…'}
 };
-let lang = 'id', me = localStorage.getItem('gw_me') || '', posters = [], fb = [];
+let lang = 'id', me = '', pend = '', cls = '', posters = [], fb = [];
 const $ = id => document.getElementById(id);
 const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const t = k => T[lang][k];
@@ -81,7 +104,10 @@ function embedUrl(u) {
   u = String(u || '').split('?')[0].replace(/\/(edit|watch)$/, '/view');
   return /canva\.com\/design\//.test(u) ? u + '?embed' : '';
 }
-function names() { return posters.map(p => String(p.nama)).sort((a, b) => a.localeCompare(b)); }
+const label = p => String(p.nama) + ' (' + String(p.kelas || '') + ')';
+const srt = (a, b) => String(a).localeCompare(String(b), undefined, {numeric: true});
+function classes() { return [...new Set(posters.map(p => String(p.kelas || '')).filter(Boolean))].sort(srt); }
+function students() { return posters.filter(p => String(p.kelas) === cls); }
 function given() { return new Set(fb.filter(f => String(f.from) === me).map(f => String(f.posterId))); }
 function renderText(f) {
   const parts = String(f.compliments || '').split(',').filter(Boolean).map(k => '⭐ ' + (C[k] ? C[k][lang] : ''));
@@ -92,8 +118,15 @@ function renderText(f) {
 function render() {
   $('title').textContent = '🎨 ' + t('title');
   $('hint').textContent = t('hint');
+  $('welcome').style.display = me ? 'none' : 'flex';
+  $('wTitle').textContent = t('hello'); $('lblCls').textContent = t('lblClass'); $('lblName').textContent = t('lblName'); $('go').textContent = t('go');
+  $('meTag').textContent = me ? '👤 ' + me : ''; $('change').textContent = t('change'); $('change').style.display = me ? '' : 'none';
+  $('cls').innerHTML = '<option value="">' + esc(t('choose')) + '</option>' + classes().map(c => '<option' + (c === cls ? ' selected' : '') + '>' + esc(c) + '</option>').join('');
+  const list = students();
+  if (!list.some(p => label(p) === pend)) pend = '';
   const sel = $('who');
-  sel.innerHTML = '<option value="">' + esc(t('pick')) + '</option>' + names().map(n => '<option' + (n === me ? ' selected' : '') + '>' + esc(n) + '</option>').join('');
+  sel.disabled = !cls;
+  sel.innerHTML = '<option value="">' + esc(t('choose')) + '</option>' + list.map(p => '<option value="' + esc(label(p)) + '"' + (label(p) === pend ? ' selected' : '') + '>' + esc(p.nama) + '</option>').join('');
   const g = given();
   $('grid').innerHTML = posters.map(p => {
     const n = fb.filter(f => String(f.posterId) === String(p.id)).length;
@@ -108,11 +141,11 @@ function openPoster(id) {
   $('modal').style.display = 'block';
 }
 function drawModal(msg) {
-  const p = cur, emb = embedUrl(p.canva_url), mine = String(p.nama) === me;
+  const p = cur, emb = embedUrl(p.canva_url), mine = label(p) === me;
   const got = fb.filter(f => String(f.posterId) === String(p.id));
   let h = '<h2>' + esc(p.nama) + ' – ' + esc(p.kelas || '') + '</h2>' +
     (emb ? '<iframe src="' + esc(emb) + '" allowfullscreen loading="lazy"></iframe>' : '<p>' + t('soon') + '</p>') +
-    '<p><a href="' + esc(p.canva_url) + '" target="_blank" rel="noopener">' + t('open') + '</a></p>';
+    (CONFIG.SHOW_CANVA_LINK ? '<p><a href="' + esc(p.canva_url) + '" target="_blank" rel="noopener">' + t('open') + '</a></p>' : '');
   if (!me) h += '<p>👆 ' + t('pick') + '</p>';
   else if (mine) h += '<h3>' + t('mine') + '</h3>' + (got.map(renderText).join('') || '<p>' + t('none') + '</p>');
   else if (given().has(String(p.id))) h += '<p class="done">' + t('given') + '</p>';
@@ -134,7 +167,10 @@ async function load() {
   } catch (e) { $('grid').textContent = 'Error: ' + e.message; return; }
   render();
 }
-$('who').onchange = e => { me = e.target.value; localStorage.setItem('gw_me', me); render(); };
+$('cls').onchange = e => { cls = e.target.value; pend = ''; $('wmsg').textContent = ''; render(); };
+$('who').onchange = e => { pend = e.target.value; $('wmsg').textContent = ''; };
+$('go').onclick = () => { if (!cls || !pend) { $('wmsg').textContent = t('needName'); return; } me = pend; render(); };
+$('change').onclick = () => { me = ''; pend = ''; cls = ''; $('modal').style.display = 'none'; $('box').innerHTML = ''; render(); };
 $('lang').onclick = () => { lang = lang === 'id' ? 'en' : 'id'; render(); if ($('modal').style.display === 'block') drawModal(''); };
 $('grid').onclick = e => { const c = e.target.closest('.card'); if (c) openPoster(c.dataset.id); };
 $('box').onclick = async e => {
@@ -154,6 +190,7 @@ $('box').onclick = async e => {
   }
   drawModal('');
 };
+$('lang2').onclick = () => $('lang').onclick();
 render(); load();
 </script>
 </body>

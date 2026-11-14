@@ -145,7 +145,7 @@ function drawModal(msg) {
   const got = fb.filter(f => String(f.posterId) === String(p.id));
   let h = '<h2>' + esc(p.nama) + ' – ' + esc(p.kelas || '') + '</h2>' +
     (emb ? '<iframe src="' + esc(emb) + '" allowfullscreen loading="lazy"></iframe>' : '<p>' + t('soon') + '</p>') +
-    (CONFIG.SHOW_CANVA_LINK ? '<p><a href="' + esc(p.canva_url) + '" target="_blank" rel="noopener">' + t('open') + '</a></p>' : '');
+    ((CONFIG.SHOW_CANVA_LINK || !emb) && p.canva_url ? '<p><a href="' + esc(p.canva_url) + '" target="_blank" rel="noopener">' + t('open') + '</a></p>' : '');
   if (!me) h += '<p>👆 ' + t('pick') + '</p>';
   else if (mine) h += '<h3>' + t('mine') + '</h3>' + (got.map(renderText).join('') || '<p>' + t('none') + '</p>');
   else if (given().has(String(p.id))) h += '<p class="done">' + t('given') + '</p>';

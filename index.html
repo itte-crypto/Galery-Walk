@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gallery Walk – Grade 3 Posters</title>
+<style>
+:root{--bg:#fff8ec;--ink:#2b2b3a;--c1:#ff8a5b;--c2:#ffc93c;--c3:#4cc9a0;--c4:#5b8def;--c5:#b57edc}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Trebuchet MS",system-ui,sans-serif;background:var(--bg);color:var(--ink)}
+header{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;padding:16px 20px;background:var(--c4);color:#fff}
+h1{margin:0;font-size:1.4rem}
+select,button{font:inherit;border-radius:12px;border:2px solid transparent;padding:8px 12px;cursor:pointer}
+#bar{display:flex;gap:8px;align-items:center}
+main{padding:20px;max-width:1100px;margin:auto}
+#menu{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}
+.mcard{background:#fff;border-radius:20px;padding:24px;border-top:10px solid var(--c1);box-shadow:0 3px 8px #0002;text-align:center;display:flex;flex-direction:column;gap:6px;position:relative}
+.mcard:nth-child(2){border-color:var(--c3)}.mcard:nth-child(3){border-color:var(--c4)}
+.mcard .ic{font-size:3rem}.mcard b{font-size:1.3rem}.mcard small{color:#666}
+.mcard .done{position:absolute;top:10px;right:14px;font-size:1.4rem}
+#grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px}
+.card{background:#fff;border-radius:18px;padding:14px;border-top:10px solid var(--c1);box-shadow:0 3px 8px #0002;cursor:pointer}
+.card:nth-child(5n+2){border-color:var(--c2)}.card:nth-child(5n+3){border-color:var(--c3)}.card:nth-child(5n+4){border-color:var(--c4)}.card:nth-child(5n){border-color:var(--c5)}
+.card b{display:block;font-size:1.1rem}.card small{color:#666}
+.thumb{pointer-events:none;margin:8px 0}
+iframe{width:100%;aspect-ratio:16/10;border:0;border-radius:12px;background:#eee}
+.done{color:#168a63;font-weight:bold}
+#modal{position:fixed;inset:0;background:#000a;display:none;overflow:auto;padding:12px;z-index:20}
+#box{background:#fff;border-radius:18px;max-width:900px;margin:auto;padding:16px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 10px}
+.chip{background:#fff;border:2px solid var(--c3);padding:8px 12px}
+.chip.on{background:var(--c3);color:#fff}
+.chip.w{border-color:var(--c2)}.chip.w.on{background:var(--c2);color:var(--ink)}
+.stars button{font-size:2rem;background:none;padding:0 4px;filter:grayscale(1);opacity:.5}
+.stars button.on{filter:none;opacity:1}
+textarea{width:100%;min-height:70px;border-radius:12px;border:2px solid #ccc;padding:8px;font:inherit;margin-bottom:14px}
+.primary{background:var(--c1);color:#fff;font-weight:bold}
+.bigbtn{font-size:1.3rem;padding:14px 24px;margin:10px 0}
+.ghost{background:#eee}
+.fb{background:#f6f6ff;border-radius:12px;padding:8px 12px;margin:6px 0}
+#msg{margin:8px 0;font-weight:bold}
+#welcome{position:fixed;inset:0;background:#fcf3dd;display:none;align-items:center;justify-content:center;z-index:30;padding:16px;overflow:auto}
+#wcard{background:#fffdf8;border:4px solid #231f48;border-radius:32px;box-shadow:0 8px 0 #231f48;padding:24px;max-width:560px;width:100%;text-align:center;color:#231f48}
+#wcard label{display:block;text-align:left;font-weight:bold;margin:10px 0 4px}
+#wcard select{width:100%;border:3px solid #231f48;background:#fcf3dd;border-radius:18px;padding:12px;font-size:1.1rem}
+#wmsg{min-height:1.6em;margin:10px 0;font-weight:bold;color:#c0392b}
+#go{background:#f7c948;border:3px solid #231f48;box-shadow:0 5px 0 #231f48;font-weight:bold;font-size:1.2rem;padding:12px 30px;border-radius:18px}
+#meTag{font-weight:bold}
+</style>
+</head>
+<body>
+<header>
+  <h1 id="title"></h1>
+  <div id="bar"><span id="meTag"></span><button id="change" class="ghost"></button><button id="lang" class="ghost">EN / ID</button></div>
+</header>
+<main id="main"></main>
+<div id="modal"><div id="box"></div></div>
+<div id="welcome">
+  <div id="wcard">
+    <button id="lang2" class="ghost" style="float:right">EN / ID</button>
+    <div style="font-size:4rem;clear:both">👋</div>
+    <h1 id="wTitle" style="font-size:2rem;margin:8px 0 20px"></h1>
+    <label id="lblCls"></label><select id="cls"></select>
+    <label id="lblName"></label><select id="who"></select>
+    <div id="wmsg"></div>
+    <button id="go"></button>
+  </div>
+</div>
+
+<script>
+const CONFIG = {
+  SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbwWTizKdlUln341WXAAw1V0etfz5-UcOAOc3BZyO78mhvh8EsPxCA6SVeIISSF-Px7z/exec',
+  CARD_MODE: 'embed',    // 'embed' = kartu menampilkan poster kecil; 'name' = kartu nama saja
+  LOCK_GALLERY: true     // true = Gallery Walk terbuka setelah anak mengirim feedback
+};
+const C = {
+  c1: {en: 'I love the colors!', id: 'Aku suka warna posternya!'},
+  c2: {en: 'The pictures caught my eye.', id: 'Gambarnya menarik perhatianku.'},
+  c3: {en: 'The words are easy to read.', id: 'Tulisannya mudah dibaca.'},
+  c4: {en: 'The message is clear.', id: 'Pesan posternya jelas.'},
+  c5: {en: 'It looks neat and creative.', id: 'Posternya rapi dan kreatif.'}
+};
+const W = {
+  w1: {en: 'Maybe add more pictures.', id: 'Mungkin bisa ditambah gambar lagi.'},
+  w2: {en: 'Maybe make the words bigger.', id: 'Mungkin tulisannya bisa dibuat lebih besar.'},
+  w3: {en: 'Maybe use colors that stand out more.', id: 'Mungkin warnanya bisa lebih kontras.'},
+  w4: {en: 'Maybe add more information.', id: 'Mungkin bisa ditambah informasi.'}
+};
+const T = {
+  en: {title: 'Gallery Walk', hello: 'Hello! What is your name?', lblClass: 'Class', lblName: 'Name', go: 'Let’s go!', change: 'Change name', needName: 'Please choose your class and name.', choose: 'Choose',
+    m1: '1. Copy my poster link', m1s: 'Finish my poster', m2: '2. Give feedback', m2s: 'to my friend', m3: '3. Gallery Walk', m3s: 'See posters and my feedback', back: '← Menu', locked: 'Give your feedback first 🔒',
+    linkTitle: 'My poster link', linkHelp: '<ol><li>Press the Copy button.</li><li>Open Chrome with your account.</li><li>Paste (Ctrl+V) in the address bar and finish your poster.</li></ol>', copy: '📋 Copy my Canva link', copied: 'Link copied! ✅ Paste it in Chrome with your account.', copyFail: 'Could not copy. Ask your teacher.', nolink: 'Your poster link is not in the Sheet yet.',
+    fbTitle: 'Your feedback is for:', stars: 'How many stars?', star: '⭐ Star: pick one thing you like', starWrite: 'Write it in your own words', wish: '🌠 Wish: pick one suggestion', wishWrite: 'Write your wish in your own words', send: 'Send feedback', need: 'Give stars, pick one star and one wish, and write both in your own words (at least 5 letters).', sent: 'Thank you! Feedback sent. ✅', err: 'Could not send. Try again.', done: 'Your feedback is sent ✅', nomate: 'There is no friend to give feedback to yet.',
+    mine: 'Feedback for my poster', none: 'No feedback yet.', soon: 'Poster is not ready yet.', galHint: 'Tap a poster to see it bigger.', close: 'Close', load: 'Loading…'},
+  id: {title: 'Gallery Walk', hello: 'Halo! Siapa namamu?', lblClass: 'Kelas', lblName: 'Nama', go: 'Ayo mulai!', change: 'Ganti nama', needName: 'Pilih kelas dan namamu dulu ya.', choose: 'Pilih',
+    m1: '1. Salin link posterku', m1s: 'Selesaikan posterku', m2: '2. Beri feedback', m2s: 'untuk temanku', m3: '3. Gallery Walk', m3s: 'Lihat poster dan feedback untukku', back: '← Menu', locked: 'Beri feedback dulu ya 🔒',
+    linkTitle: 'Link posterku', linkHelp: '<ol><li>Tekan tombol Salin.</li><li>Buka Chrome yang ada akunmu.</li><li>Tempel (Ctrl+V) di kolom alamat, lalu lanjutkan posterku.</li></ol>', copy: '📋 Salin link Canva-ku', copied: 'Link tersalin! ✅ Tempel di Chrome yang ada akunmu.', copyFail: 'Gagal menyalin. Minta bantuan gurumu.', nolink: 'Link posterku belum diisi di Sheet.',
+    fbTitle: 'Feedback-mu untuk:', stars: 'Berapa bintang?', star: '⭐ Bintang: pilih satu hal yang kamu suka', starWrite: 'Tulis dengan kata-katamu sendiri', wish: '🌠 Harapan: pilih satu saran', wishWrite: 'Tulis harapanmu dengan kata-katamu sendiri', send: 'Kirim feedback', need: 'Beri bintang, pilih satu bintang dan satu harapan, lalu tulis keduanya dengan kata-katamu (minimal 5 huruf).', sent: 'Terima kasih! Feedback terkirim. ✅', err: 'Gagal mengirim. Coba lagi.', done: 'Feedback-mu sudah terkirim ✅', nomate: 'Belum ada teman untuk diberi feedback.',
+    mine: 'Feedback untuk posterku', none: 'Belum ada feedback.', soon: 'Poster belum siap.', galHint: 'Klik poster untuk melihatnya lebih besar.', close: 'Tutup', load: 'Memuat…'}
+};
+const $ = id => document.getElementById(id);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const blank = () => ({stars: 0, c: '', w: '', sT: '', wT: ''});
+let lang = 'id', me = '', pend = '', cls = '', posters = [], fb = [], view = 'menu', st = blank(), msg = '', sending = false;
+const t = k => T[lang][k];
+const label = p => String(p.nama) + ' (' + String(p.kelas || '') + ')';
+const plain = s => String(s).replace(/\s*\([^)]*\)\s*$/, '');
+const num = p => { const m = String(p.absen != null && p.absen !== '' ? p.absen : p.nama).match(/\d+/); return m ? +m[0] : 999; };
+const srt = (a, b) => String(a).localeCompare(String(b), undefined, {numeric: true});
+const classes = () => [...new Set(posters.map(p => String(p.kelas || '')).filter(Boolean))].sort(srt);
+const classPosters = () => posters.filter(p => String(p.kelas) === cls).sort((a, b) => num(a) - num(b));
+const meP = () => posters.find(p => label(p) === me);
+const received = p => fb.filter(f => String(f.posterId) === String(p.id));
+const done = () => fb.some(f => String(f.from) === me);
+function mate() {
+  const p = meP(); if (!p) return null;
+  const list = classPosters();
+  if (p.memberi_ke) { const x = list.find(q => num(q) === parseInt(p.memberi_ke)); if (x && x !== p) return x; }
+  const i = list.indexOf(p);
+  for (let k = 1; k < list.length; k++) { const q = list[(i + k) % list.length]; if (q.canva_url) return q; }
+  return null;
+}
+function embedUrl(p) {
+  const u = String(p.canva_resolved || p.canva_url || '').split('?')[0].replace(/\/(edit|watch)$/, '/view');
+  return /canva\.com\/design\//.test(u) ? u + '?embed' : '';
+}
+const frame = p => { const e = embedUrl(p); return e ? '<iframe src="' + esc(e) + '" loading="lazy" allowfullscreen tabindex="-1"></iframe>' : '<p>' + t('soon') + '</p>'; };
+function fbHtml(f) {
+  const cs = String(f.compliments || '').split(',').filter(k => C[k]).map(k => '⭐ ' + esc(C[k][lang]) + (f.star_text ? ' — <i>' + esc(f.star_text) + '</i>' : ''));
+  const w = W[f.wish] ? '🌠 ' + esc(W[f.wish][lang]) + (f.wish_text ? ' — <i>' + esc(f.wish_text) + '</i>' : '') : '';
+  return '<div class="fb"><b>' + esc(plain(f.from)) + '</b> ' + '★'.repeat(Number(f.stars) || 0) + '<br>' + cs.concat(w ? [w] : []).join('<br>') + '</div>';
+}
+const back = () => '<p><button class="ghost" data-go="menu">' + t('back') + '</button></p>';
+const card = (go, ic, ti, su, ex) => '<button class="mcard" data-go="' + go + '"><span class="ic">' + ic + '</span><b>' + t(ti) + '</b><small>' + t(su) + '</small>' + (ex || '') + '</button>';
+const locked = () => CONFIG.LOCK_GALLERY && !done() && mate();
+
+function vMenu() {
+  return '<div id="menu">' + card('link', '📋', 'm1', 'm1s') + card('feedback', '💌', 'm2', 'm2s', done() ? '<span class="done">✅</span>' : '') + card('gallery', locked() ? '🔒' : '🖼️', 'm3', 'm3s') + '</div>' + (msg ? '<p id="msg">' + esc(msg) + '</p>' : '');
+}
+function vLink() {
+  const p = meP();
+  return back() + '<h2>' + t('linkTitle') + '</h2>' + t('linkHelp') + (p && p.canva_url ? '<button class="primary bigbtn" data-copy="1">' + t('copy') + '</button>' : '<p>' + t('nolink') + '</p>') + '<p id="msg">' + esc(msg) + '</p>';
+}
+function vFb() {
+  const q = mate();
+  let h = back();
+  if (!q) return h + '<p>' + t('nomate') + '</p>';
+  h += '<h2>' + t('fbTitle') + ' ' + esc(q.nama) + '</h2>' + frame(q);
+  if (done()) return h + '<p class="done">' + t('done') + '</p>' + (msg ? '<p id="msg">' + esc(msg) + '</p>' : '');
+  return h + '<h3>' + t('stars') + '</h3><div class="stars">' + [1, 2, 3].map(n => '<button data-s="' + n + '" class="' + (st.stars >= n ? 'on' : '') + '">⭐</button>').join('') + '</div>' +
+    '<h3>' + t('star') + '</h3><div class="chips">' + Object.keys(C).map(k => '<button class="chip' + (st.c === k ? ' on' : '') + '" data-c="' + k + '">' + esc(C[k][lang]) + '</button>').join('') + '</div>' +
+    '<textarea id="tStar" maxlength="200" placeholder="' + esc(t('starWrite')) + '">' + esc(st.sT) + '</textarea>' +
+    '<h3>' + t('wish') + '</h3><div class="chips">' + Object.keys(W).map(k => '<button class="chip w' + (st.w === k ? ' on' : '') + '" data-w="' + k + '">' + esc(W[k][lang]) + '</button>').join('') + '</div>' +
+    '<textarea id="tWish" maxlength="200" placeholder="' + esc(t('wishWrite')) + '">' + esc(st.wT) + '</textarea>' +
+    '<button class="primary bigbtn" data-send="1">' + t('send') + '</button><p id="msg">' + esc(msg) + '</p>';
+}
+function vGal() {
+  const mp = meP();
+  return back() + '<h3>' + t('mine') + '</h3>' + ((mp ? received(mp).map(fbHtml).join('') : '') || '<p>' + t('none') + '</p>') +
+    '<h2>' + t('m3').replace(/^\d\.\s*/, '') + ' – ' + esc(cls) + '</h2><p>' + t('galHint') + '</p><div id="grid">' +
+    classPosters().map(p => '<div class="card" role="button" data-card="' + esc(p.id) + '"><b>' + esc(p.nama) + (label(p) === me ? ' ⭐' : '') + '</b>' + (CONFIG.CARD_MODE === 'embed' ? '<div class="thumb">' + frame(p) + '</div>' : '') + '</div>').join('') + '</div>';
+}
+function render() {
+  $('title').textContent = '🎨 ' + t('title');
+  $('welcome').style.display = me ? 'none' : 'flex';
+  $('wTitle').textContent = t('hello'); $('lblCls').textContent = t('lblClass'); $('lblName').textContent = t('lblName'); $('go').textContent = t('go');
+  $('meTag').textContent = me ? '👤 ' + plain(me) + ' – ' + cls : ''; $('change').textContent = t('change'); $('change').style.display = me ? '' : 'none';
+  $('cls').innerHTML = '<option value="">' + esc(t('choose')) + '</option>' + classes().map(c => '<option' + (c === cls ? ' selected' : '') + '>' + esc(c) + '</option>').join('');
+  const list = classPosters();
+  if (!list.some(p => label(p) === pend)) pend = '';
+  $('who').disabled = !cls;
+  $('who').innerHTML = '<option value="">' + esc(t('choose')) + '</option>' + list.map(p => '<option value="' + esc(label(p)) + '"' + (label(p) === pend ? ' selected' : '') + '>' + esc(p.nama) + '</option>').join('');
+  $('main').innerHTML = me ? ({menu: vMenu, link: vLink, feedback: vFb, gallery: vGal}[view])() : '';
+}
+async function copyText(txt) {
+  try { await navigator.clipboard.writeText(txt); return true; } catch (e) {
+    const ta = document.createElement('textarea'); ta.value = txt; document.body.appendChild(ta); ta.select();
+    let ok = false; try { ok = document.execCommand('copy'); } catch (_) {} ta.remove(); return ok;
+  }
+}
+async function send() {
+  const q = mate(); if (!q || done() || sending) return;
+  if (!st.stars || !st.c || !st.w || st.sT.trim().length < 5 || st.wT.trim().length < 5) { msg = t('need'); return render(); }
+  const body = {posterId: q.id, from: me, stars: st.stars, compliments: st.c, wish: st.w, note: '', star_text: st.sT.trim(), wish_text: st.wT.trim()};
+  sending = true;
+  try {
+    await fetch(CONFIG.SCRIPT_URL, {method: 'POST', headers: {'Content-Type': 'text/plain;charset=utf-8'}, body: JSON.stringify(body)});
+    fb.push(body); msg = t('sent'); st = blank();
+  } catch (e) { msg = t('err'); }
+  sending = false; render();
+}
+function closeModal() { $('modal').style.display = 'none'; $('box').innerHTML = ''; }
+function openCard(id) {
+  const p = posters.find(x => String(x.id) === id); if (!p) return;
+  const mine = label(p) === me;
+  $('box').innerHTML = '<h2>' + esc(p.nama) + ' – ' + esc(p.kelas || '') + '</h2>' + frame(p) +
+    (mine ? '<h3>' + t('mine') + '</h3>' + (received(p).map(fbHtml).join('') || '<p>' + t('none') + '</p>') : '') +
+    '<p><button class="ghost" data-close="1">' + t('close') + '</button></p>';
+  $('modal').style.display = 'block';
+}
+async function load() {
+  try { const d = await (await fetch(CONFIG.SCRIPT_URL)).json(); posters = d.posters; fb = d.feedback; }
+  catch (e) { $('main').textContent = 'Error: ' + e.message; return; }
+  render();
+}
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-go],[data-copy],[data-card],[data-s],[data-c],[data-w],[data-send],[data-close]'); if (!b) return;
+  const d = b.dataset;
+  if ('close' in d) return closeModal();
+  if ('send' in d) return send();
+  if (d.card) return openCard(d.card);
+  if ('copy' in d) { const p = meP(); copyText(p.canva_url).then(ok => { msg = ok ? t('copied') : t('copyFail'); render(); }); return; }
+  if (d.go) {
+    if (d.go === 'gallery' && locked()) { msg = t('locked'); view = 'menu'; }
+    else { view = d.go; msg = ''; if (d.go === 'gallery') load(); }
+    return render();
+  }
+  if (d.s) st.stars = +d.s;
+  if (d.c) st.c = d.c;
+  if (d.w) st.w = d.w;
+  render();
+});
+document.addEventListener('input', e => { if (e.target.id === 'tStar') st.sT = e.target.value; if (e.target.id === 'tWish') st.wT = e.target.value; });
+$('cls').onchange = e => { cls = e.target.value; pend = ''; $('wmsg').textContent = ''; render(); };
+$('who').onchange = e => { pend = e.target.value; $('wmsg').textContent = ''; };
+$('go').onclick = () => { if (!cls || !pend) { $('wmsg').textContent = t('needName'); return; } me = pend; view = 'menu'; msg = ''; st = blank(); render(); };
+$('change').onclick = () => { me = ''; pend = ''; cls = ''; view = 'menu'; msg = ''; st = blank(); closeModal(); render(); };
+$('lang').onclick = () => { lang = lang === 'id' ? 'en' : 'id'; closeModal(); render(); };
+$('lang2').onclick = () => $('lang').onclick();
+render(); load();
+</script>
+</body>
+</html>
